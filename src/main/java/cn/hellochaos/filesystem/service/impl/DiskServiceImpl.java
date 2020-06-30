@@ -11,7 +11,7 @@ import cn.hellochaos.filesystem.mapper.FatMapper;
 import cn.hellochaos.filesystem.mapper.InodeMapper;
 import cn.hellochaos.filesystem.mapper.VolumeMapper;
 import cn.hellochaos.filesystem.service.FileService;
-import cn.hellochaos.filesystem.service.VolumeService;
+import cn.hellochaos.filesystem.service.DiskService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -33,7 +33,7 @@ import java.util.List;
 @Slf4j
 @Service
 @Transactional
-public class VolumeServiceImpl extends ServiceImpl<VolumeMapper, Volume> implements VolumeService {
+public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implements DiskService {
 
   /** 工作硬盘 */
   private static Volume currentVolume;
@@ -276,6 +276,9 @@ public class VolumeServiceImpl extends ServiceImpl<VolumeMapper, Volume> impleme
     }
 
     Fat fat = getFirstFreeBlock();
+    inode.setAddress(fat.getFatId());
+    inode.updateById();
+
     // 写入磁盘
     while (true) {
       if (fat == null) {

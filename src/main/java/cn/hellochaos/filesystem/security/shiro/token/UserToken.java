@@ -20,7 +20,6 @@ public class UserToken extends UsernamePasswordToken implements Serializable {
 
     private String username;
 
-    private char[] password;
 
     private static final long serialVersionUID = 4812793519945855483L;
 
@@ -34,9 +33,8 @@ public class UserToken extends UsernamePasswordToken implements Serializable {
         return "ok";
     }
 
-    public UserToken(String username, String password) {
+    public UserToken(String username) {
         this.username = username;
-        this.password = password.toCharArray();
     }
 
 }

@@ -50,17 +50,14 @@ public class ShiroConfig {
     // todo 这里后期得进行修改
 
     map.put("/", "anon");
-    map.put("/api/user/login", "anon");
-    map.put("/island/api/v1/user/login", "anon");
-    map.put("/island/api/v1/user/", "anon");
+    map.put("/api/v1/user/login", "anon");
+    map.put("/filesystem/api/v1/user/login", "anon");
     map.put("/wx/**", "anon");
     map.put("/css/**", "anon");
     map.put("/js/**", "anon");
     map.put("/fonts/**", "anon");
     map.put("/sockjs-node/**", "anon");
     map.put("/img/**", "anon");
-    map.put("/login/**", "anon");
-    map.put("/#/login/**", "anon");
     map.put("/**", "authc");
 
     shiroFilterFactoryBean.setLoginUrl("/#/login");

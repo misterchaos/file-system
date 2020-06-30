@@ -45,6 +45,7 @@ public class File extends Dirent {
   /** 目录的子文件或者子目录 */
   private List<File> files;
 
+
   /**
    * 目录类型文件
    */
@@ -58,6 +59,9 @@ public class File extends Dirent {
    * txt格式文件
    */
   public static final String TXT = "txt";
+
+
+  public static final String SUPER_DIR = "..";
 
   @Override
   public String toString() {

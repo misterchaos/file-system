@@ -1,6 +1,7 @@
 package cn.hellochaos.filesystem.service;
 
 
+import cn.hellochaos.filesystem.entity.User;
 import cn.hellochaos.filesystem.entity.vo.File;
 
 /**
@@ -15,12 +16,17 @@ public interface FileService {
   File create(String fileName,Integer parent,String type,Integer ownerId);
 
   /**
+   * 创建用户目录
+   */
+  File createUserDir(String username, Integer userId);
+
+  /**
    * 打开一个目录或文件
    *
    * @param direntId 要打开的目录或者文件id
    * @return 目录中的文件列表或者文件数据
    */
-  File open(Integer direntId);
+  File open(Integer direntId, User user);
 
   /** 更新文件 */
   File update(File file);

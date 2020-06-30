@@ -16,7 +16,7 @@ import java.util.List;
 * @author Yuchao-Huang
 * @since 2020-06-28
 */
-public interface VolumeService {
+public interface DiskService {
 
 
 

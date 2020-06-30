@@ -47,6 +47,11 @@ public class User extends Model<User> {
      */
     private Integer userDir;
 
+    /**
+     * root用户
+     */
+    public static final String ROOT_USER = "root";
+
 
     @Override
     protected Serializable pkVal() {

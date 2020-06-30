@@ -2,12 +2,13 @@ package cn.hellochaos.filesystem.service.impl;
 
 import cn.hellochaos.filesystem.entity.Dirent;
 import cn.hellochaos.filesystem.entity.Inode;
+import cn.hellochaos.filesystem.entity.User;
 import cn.hellochaos.filesystem.entity.vo.File;
 import cn.hellochaos.filesystem.exception.bizException.BizException;
 import cn.hellochaos.filesystem.mapper.DirentMapper;
 import cn.hellochaos.filesystem.mapper.InodeMapper;
 import cn.hellochaos.filesystem.service.FileService;
-import cn.hellochaos.filesystem.service.VolumeService;
+import cn.hellochaos.filesystem.service.DiskService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.ConcurrentHashSet;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -27,7 +28,7 @@ public class FileServiceImpl implements FileService {
 
   @Autowired private DirentMapper direntMapper;
   @Autowired private InodeMapper inodeMapper;
-  @Autowired private VolumeService volumeService;
+  @Autowired private DiskService diskService;
 
   private final Set<Integer> activeList = new ConcurrentHashSet<>();
 
@@ -56,6 +57,11 @@ public class FileServiceImpl implements FileService {
     dirent.setInodeId(inode.getInodeId());
     dirent.insert();
 
+    //创建..文件夹
+    if(parent!=null&&!fileName.equals(File.SUPER_DIR)){
+      createSuperDir(dirent.getDirentId());
+    }
+
     log.info("创建完成！");
 
     // 返回文件
@@ -63,12 +69,57 @@ public class FileServiceImpl implements FileService {
   }
 
   @Override
-  public File open(Integer direntId) {
+  public File createUserDir(String username, Integer userId) {
+    return create(username,diskService.getRootDirentId(),File.DIR,userId);
+  }
+
+  /**
+   * 创建..文件夹
+   */
+  public File createSuperDir(Integer parent){
+    log.info("正在创建共享文件/文件夹链接：{}",File.SUPER_DIR);
+
+    Dirent superDirent = direntMapper.selectById(parent);
+
+    // 链接到父目录的索引节点
+    Inode inode = inodeMapper.selectById(superDirent.getInodeId());
+
+    // 创建目录项
+    Dirent dirent = new Dirent();
+    dirent.setFilename(File.SUPER_DIR);
+    dirent.setParent(parent);
+    dirent.setInodeId(inode.getInodeId());
+    dirent.insert();
+
+    log.info("创建完成！");
+
+    // 返回文件
+    return getFile(dirent.getDirentId());  }
+
+  @Override
+  public File open(Integer direntId, User user) {
     log.info("正在打开文件");
 
-    //读取文件
-    File file = read(direntId);
+    File root = read(diskService.getRootDirentId());
 
+    File file;
+    //读取文件
+    if(direntId==null){
+       if(User.ROOT_USER.equals(user.getUsername())){
+         //如果是root用户则打开根目录
+         file = root;
+       }else {
+         //其他用户则返回用户目录
+         file = getFileByName(root.getDirentId(),user.getUsername());
+       }
+    }else {
+      // 返回指定的文件
+       file = read(direntId);
+    }
+
+    if(file==null){
+      throw new BizException("文件/文件夹不存在，无法打开");
+    }
     // 加入到已打开的文件列表中
     activeList.add(file.getInodeId());
 
@@ -84,9 +135,9 @@ public class FileServiceImpl implements FileService {
 
     // 检查文件内容是否有改动
     File old = read(file.getDirentId());
-    if (!old.getData().equals(file.getData())) {
+    if(file.getData()!=null&&!old.getData().equals(file.getData())) {
       // 更新数据
-      volumeService.update(file.getInodeId(), file.getData());
+      diskService.update(file.getInodeId(), file.getData());
     }
     return file;
   }
@@ -120,7 +171,7 @@ public class FileServiceImpl implements FileService {
         }
       } else {
         // 删除文件的块，释放资源
-        volumeService.delete(file.getInodeId());
+        diskService.delete(file.getInodeId());
       }
     }
 
@@ -139,20 +190,27 @@ public class FileServiceImpl implements FileService {
 
   /** 检查一个目录下是否存在该文件名的文件或者目录 */
   private boolean contain(Integer parentDir, String filename) {
+    return getFileByName(parentDir, filename)!=null;
+  }
+
+  /**
+   * 在一个目录下查找指定名称的文件
+   */
+  private File getFileByName(Integer parentDir, String filename) {
     List<File> fileList = read(parentDir).getFiles();
-    for (int i = 0; i < fileList.size(); i++) {
+    for (int i = 0; fileList!=null&&i < fileList.size(); i++) {
       if (fileList.get(i).getFilename().equalsIgnoreCase(filename)) {
-        return true;
+        return fileList.get(i);
       }
     }
-    return false;
+    return null;
   }
 
   /** 通过目录id获取File */
   private File getFile(Integer direntId) {
     Dirent dirent = direntMapper.selectById(direntId);
     if (dirent == null) {
-      throw new BizException("id为" + direntId + "的目录不存在");
+      throw new BizException("id为" + direntId + "的文件/目录不存在");
     }
     Inode inode = inodeMapper.selectById(dirent.getInodeId());
     if (inode == null) {
@@ -191,7 +249,7 @@ public class FileServiceImpl implements FileService {
       file.setFiles(subFiles);
     } else {
       // 读取数据
-      file.setData(volumeService.getFileData(file.getInodeId()));
+      file.setData(diskService.getFileData(file.getInodeId()));
     }
     return file;
   }
