@@ -29,6 +29,20 @@ public class CoreController {
     @Autowired
     private FileService fileService;
 
+    @Autowired
+    private DiskService diskService;
+
+    /**
+     * 根据id查询
+     */
+    @RequestMapping(method = RequestMethod.GET,value = "/disk")
+    public ResultBean<?> disk() {
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
+        if (null == user) {
+            throw new BizException(BizExceptionCodeEnum.NO_LOGIN);
+        }
+        return new ResultBean<>(diskService.getDiskInfo());
+    }
 
     /**
     * 根据id查询
@@ -47,8 +61,12 @@ public class CoreController {
     */
     @RequestMapping(method = RequestMethod.POST)
     public ResultBean<?> create(@RequestBody File file) {
+        User user = (User) SecurityUtils.getSubject().getPrincipal();
+        if (null == user) {
+            throw new BizException(BizExceptionCodeEnum.NO_LOGIN);
+        }
         return new ResultBean<>(fileService.create(file.getFilename(),file.getParent(),
-        file.getType(),file.getOwnId()));
+        file.getType(),user.getUserId()));
     }
 
     /**

@@ -1,6 +1,7 @@
 package cn.hellochaos.filesystem.entity.vo;
 
 import cn.hellochaos.filesystem.entity.Dirent;
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -44,6 +45,12 @@ public class File extends Dirent {
 
   /** 目录的子文件或者子目录 */
   private List<File> files;
+
+  /**
+   * 所有者
+   */
+  @TableField(exist = false,select = false)
+  private String owner;
 
 
   /**

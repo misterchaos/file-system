@@ -53,11 +53,12 @@ public class ShiroConfig {
     map.put("/api/v1/user/login", "anon");
     map.put("/filesystem/api/v1/user/login", "anon");
     map.put("/wx/**", "anon");
+    map.put("/static/**", "anon");
     map.put("/css/**", "anon");
     map.put("/js/**", "anon");
-    map.put("/fonts/**", "anon");
-    map.put("/sockjs-node/**", "anon");
     map.put("/img/**", "anon");
+    map.put("/html/**", "anon");
+    map.put("/sockjs-node/**", "anon");
     map.put("/**", "authc");
 
     shiroFilterFactoryBean.setLoginUrl("/#/login");

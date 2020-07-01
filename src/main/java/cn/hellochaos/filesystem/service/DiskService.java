@@ -3,6 +3,7 @@ package cn.hellochaos.filesystem.service;
 import cn.hellochaos.filesystem.entity.Block;
 import cn.hellochaos.filesystem.entity.Inode;
 import cn.hellochaos.filesystem.entity.Volume;
+import cn.hellochaos.filesystem.entity.vo.Disk;
 import cn.hellochaos.filesystem.entity.vo.File;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
@@ -111,6 +112,13 @@ public interface DiskService {
      * 获取根目录id
      */
     Integer getRootDirentId();
+
+
+    /**
+     * 获取磁盘信息
+     *
+     */
+    Disk getDiskInfo();
 
 
 }

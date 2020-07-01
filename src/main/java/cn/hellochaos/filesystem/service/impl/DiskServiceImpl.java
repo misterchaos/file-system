@@ -4,6 +4,7 @@ import cn.hellochaos.filesystem.entity.Block;
 import cn.hellochaos.filesystem.entity.Fat;
 import cn.hellochaos.filesystem.entity.Inode;
 import cn.hellochaos.filesystem.entity.Volume;
+import cn.hellochaos.filesystem.entity.vo.Disk;
 import cn.hellochaos.filesystem.entity.vo.File;
 import cn.hellochaos.filesystem.exception.bizException.BizException;
 import cn.hellochaos.filesystem.mapper.BlockMapper;
@@ -12,6 +13,7 @@ import cn.hellochaos.filesystem.mapper.InodeMapper;
 import cn.hellochaos.filesystem.mapper.VolumeMapper;
 import cn.hellochaos.filesystem.service.FileService;
 import cn.hellochaos.filesystem.service.DiskService;
+import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -44,8 +46,7 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
 
   @Autowired private InodeMapper inodeMapper;
 
-  @Autowired
-  private FatMapper fatMapper;
+  @Autowired private FatMapper fatMapper;
 
   @Override
   public Page<Volume> listVolumesByPage(int page, int pageSize, String factor) {
@@ -108,6 +109,7 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
     if (volumeList == null || volumeList.isEmpty()) {
       // 新建卷
       Volume volume = createVolume("DISK_0");
+      currentVolume = volume;
       // 格式化(容量：1MB，块大小：4KB)
       volume.setCapacity((long) (1024));
       volume.setBlockSize(4);
@@ -115,11 +117,10 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
       // 保存到数据库
       volume.updateById();
       // 设置为当前硬盘
-      currentVolume = volume;
     } else {
       // 设置第一块硬盘为当前硬盘
       currentVolume = volumeList.get(0);
-      //获取FAT
+      // 获取FAT
       List<Fat> fats = fatMapper.selectList(new QueryWrapper<Fat>().orderByAsc("fat_id"));
       currentVolume.setFat(new ArrayList<>(fats));
     }
@@ -151,7 +152,7 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
       block.setBlockId(i);
       block.setAddress(i * volume.getBlockSize() * 1024);
       block.insert();
-      log.info("创建硬盘块成功：{}",i);
+      log.info("创建硬盘块成功：{}", i);
       // 创建FAT表项
       Fat fat = new Fat();
       fat.setFatId(i);
@@ -159,12 +160,12 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
       FATArray.add(i, fat);
     }
 
+    // 保存FAT
+    volume.setFat(FATArray);
+
     // 创建根目录
     File file = fileService.create(File.ROOT, null, File.DIR, null);
     volume.setRootDir(file.getDirentId());
-
-    // 保存FAT
-    volume.setFat(FATArray);
 
     log.info("格式化完成！");
     return volume;
@@ -238,6 +239,27 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
     return currentVolume.getRootDir();
   }
 
+  @Override
+  public Disk getDiskInfo() {
+    caculateFreeCapacity();
+    Disk disk = new Disk();
+    String percent =
+        NumberUtil.formatPercent(
+            (float) currentVolume.getUsedCapacity() / currentVolume.getCapacity(), 2);
+    disk.setPercent(percent);
+    disk.setInfo(
+        currentVolume.getVolumeLabel()
+            + " : "
+            + currentVolume.getUsedCapacity()
+            + "KB/"
+            + currentVolume.getCapacity()
+            + "KB"
+            + " (块大小: "
+            + currentVolume.getBlockSize()
+            + "KB)");
+    return disk;
+  }
+
   /** 删除文件块，释放资源 */
   private void delete(Inode inode) {
 
@@ -250,13 +272,18 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
 
     // 标记为空闲
     fat.setStatus(Fat.FREE);
+    fat.updateById();
 
     // 遍历FAT显式链接
     while (fat.getNextId() != Fat.EOF) {
       // 下个数据块
       fat = FATArray.get(fat.getNextId());
       fat.setStatus(Fat.FREE);
+      fat.updateById();
     }
+
+    inode.setLength(0);
+    inode.updateById();
   }
 
   /** 写入文件数据 */
@@ -274,6 +301,8 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
         > currentVolume.getFreeCapacity()) {
       throw new BizException("剩余空间不足，无法写入");
     }
+
+    int length = 0;
 
     Fat fat = getFirstFreeBlock();
     inode.setAddress(fat.getFatId());
@@ -298,6 +327,9 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
       block.setData(blockData);
       block.updateById();
 
+      // 计算长度
+      length += currentVolume.getBlockSize();
+
       // 获取新的fat块
       if (data.length() > 0) {
         Fat tmp = getFirstFreeBlock();
@@ -311,6 +343,9 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
         break;
       }
     }
+
+    inode.setLength(length);
+    inode.updateById();
   }
 
   /** 定期保存FAT */
@@ -330,6 +365,6 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
         return fat;
       }
     }
-    return null;
+    throw new BizException("磁盘上没有可用的空闲空间!");
   }
 }

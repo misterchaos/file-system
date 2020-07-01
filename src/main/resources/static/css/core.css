@@ -1,0 +1,11 @@
+.scan-button {
+    float: right;
+    margin-right: 5px;
+    margin-bottom: 10px;
+}
+.edit-button {
+    float: right;
+    margin-top: 0px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+}

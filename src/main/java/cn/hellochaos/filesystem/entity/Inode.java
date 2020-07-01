@@ -13,10 +13,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * <p>
- * 
- * </p>
- *
  * @author Yuchao-Huang
  * @since 2020-06-28
  */
@@ -26,53 +22,35 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class Inode extends Model<Inode> {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(value = "inode_id", type = IdType.AUTO)
-    private Integer inodeId;
+  /** 主键 */
+  @TableId(value = "inode_id", type = IdType.AUTO)
+  private Integer inodeId;
 
-    /**
-     * 文件类型
-     */
-    private String type;
+  /** 文件类型 */
+  private String type;
 
-    /**
-     * 物理地址（第一个FAT表项的序号）
-     */
-    private Integer address;
+  /** 物理地址（第一个FAT表项的序号） */
+  private Integer address;
 
-    /**
-     * 文件长度（占用文件块的数量）
-     */
-    private Integer length;
+  /** 文件长度（占用文件块的数量） */
+  private int length;
 
-    /**
-     * 所有者id
-     */
-    private Integer ownId;
+  /** 所有者id */
+  private Integer ownId;
 
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
+  /** 创建时间 */
+  private LocalDateTime createTime;
 
-    /**
-     * 上次修改时间
-     */
-    private LocalDateTime updateTime;
+  /** 上次修改时间 */
+  private LocalDateTime updateTime;
 
-    /**
-     * 共享计数器
-     */
-    private Integer shareCount;
+  /** 共享计数器 */
+  private Integer shareCount;
 
-
-    @Override
-    protected Serializable pkVal() {
-        return this.inodeId;
-    }
-
+  @Override
+  protected Serializable pkVal() {
+    return this.inodeId;
+  }
 }

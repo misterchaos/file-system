@@ -84,6 +84,9 @@ public class Volume extends Model<Volume> {
     @TableField(exist = false,select = false)
     private Long freeCapacity;
 
+
+
+
     @Override
     protected Serializable pkVal() {
         return this.volumeId;
