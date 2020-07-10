@@ -9,6 +9,26 @@ function goToLogin() {
     window.location.href = "../html/login.html";
 }
 
+function logout() {
+    var settings = {
+        "url": baseUrl + "/user/logout",
+        "method": "GET",
+        "timeout": 0,
+        "headers": {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+    };
+
+    $.ajax(settings).done(function (response, status, request) {
+        console.log(response.code)
+        if (response.code !== '1') {
+            mdui.alert(response.message, '系统提示');
+            return;
+        }
+        goToLogin();
+    });
+}
+
 function login() {
     var username = $("#username").val();
     if (username == null || username.trim() === "") {

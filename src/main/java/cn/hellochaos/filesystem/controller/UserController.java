@@ -1,6 +1,5 @@
 package cn.hellochaos.filesystem.controller;
 
-
 import cn.hellochaos.filesystem.entity.User;
 import cn.hellochaos.filesystem.entity.dto.ResultBean;
 import cn.hellochaos.filesystem.security.shiro.token.UserToken;
@@ -26,11 +25,18 @@ public class UserController {
   @Autowired private UserService userService;
 
   @PostMapping("/login")
-  public ResultBean<?> login(@RequestBody User user,HttpServletResponse response){
-      Subject subject = SecurityUtils.getSubject();
-      subject.login(new UserToken(user.getUsername()));
-      user = (User) subject.getPrincipal();
-      response.setHeader("Authorization", subject.getSession().getId().toString());
-      return new ResultBean<>(user);
+  public ResultBean<?> login(@RequestBody User user, HttpServletResponse response) {
+    Subject subject = SecurityUtils.getSubject();
+    subject.login(new UserToken(user.getUsername()));
+    user = (User) subject.getPrincipal();
+    response.setHeader("Authorization", subject.getSession().getId().toString());
+    return new ResultBean<>(user);
+  }
+
+  @GetMapping("/logout")
+  public ResultBean<?> logout() {
+    Subject subject = SecurityUtils.getSubject();
+    subject.logout();
+    return new ResultBean<>();
   }
 }
