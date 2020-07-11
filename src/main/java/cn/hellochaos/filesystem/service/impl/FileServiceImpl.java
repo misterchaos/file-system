@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -134,6 +135,9 @@ public class FileServiceImpl implements FileService {
     // 检查文件名是否合法
     checkFileName(file.getFilename());
     file.updateById();
+    Inode inode = inodeMapper.selectById(file.getInodeId());
+    inode.setUpdateTime(LocalDateTime.now());
+    inode.updateById();
 
     // 检查文件内容是否有改动
     File old = read(file.getDirentId());

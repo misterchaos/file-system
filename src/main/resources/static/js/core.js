@@ -1,5 +1,4 @@
 var baseUrl = "http://localhost:8080/filesystem/api/v1/"
-var webContext = "http://localhost:8080/";
 var auth = null;
 var userId = null;
 var currentDir = null;
