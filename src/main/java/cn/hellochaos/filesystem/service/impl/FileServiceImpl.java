@@ -185,7 +185,7 @@ public class FileServiceImpl implements FileService {
       }
     }
     // 删除文件的块，释放资源
-    diskService.delete(file.getInodeId());
+    diskService.deleteInode(file.getInodeId());
     // 删除文件目录项
     file.deleteById();
   }

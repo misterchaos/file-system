@@ -15,6 +15,7 @@ import cn.hellochaos.filesystem.service.FileService;
 import cn.hellochaos.filesystem.service.DiskService;
 import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * 服务实现类
@@ -200,7 +202,8 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
   @Override
   public void update(Integer inodeId, String data) {
     // 删除旧数据
-    delete(inodeId);
+    Inode inode = inodeMapper.selectById(inodeId);
+    removeDataFromInode(inode);
     // 重新写入
     write(inodeId, data);
   }
@@ -229,9 +232,10 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
 
   /** 删除文件块，释放资源 */
   @Override
-  public void delete(Integer inodeId) {
+  public void deleteInode(Integer inodeId) {
     Inode inode = inodeMapper.selectById(inodeId);
-    delete(inode);
+    this.removeDataFromInode(inode);
+    inode.deleteById();
   }
 
   @Override
@@ -261,7 +265,7 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
   }
 
   /** 删除文件块，释放资源 */
-  private void delete(Inode inode) {
+  private void removeDataFromInode(Inode inode) {
 
     // 获取FAT第一项
     ArrayList<Fat> FATArray = currentVolume.getFat();
@@ -270,16 +274,21 @@ public class DiskServiceImpl extends ServiceImpl<VolumeMapper, Volume> implement
     }
     Fat fat = FATArray.get(inode.getAddress());
 
-    // 标记为空闲
-    fat.setStatus(Fat.FREE);
-    fat.updateById();
-
     // 遍历FAT显式链接
-    while (fat.getNextId() != Fat.EOF) {
+    while (fat != null) {
       // 下个数据块
-      fat = FATArray.get(fat.getNextId());
+      Fat next = null;
+      if (fat.getNextId() != Fat.EOF) {
+        next = FATArray.get(fat.getNextId());
+      }
+      // 标记为空闲
+      Block block = blockMapper.selectById(fat.getFatId());
+      block.update(new UpdateWrapper<Block>().set("data", null));
       fat.setStatus(Fat.FREE);
+      fat.setNextId(Fat.EOF);
       fat.updateById();
+      // 下个
+      fat = next;
     }
 
     inode.setLength(0);
