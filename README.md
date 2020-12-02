@@ -14,37 +14,35 @@
 
 （1）输入用户名登录，用户不存在会自动注册
 
-![image-20200710174937591](http://nextcloud.hellochaos.cn/index.php/s/T58pZZnXkb7nFRi/preview)
-
- 
+![image-20200710174937591](imgs/20201202112846)
 
 **文件操作**
 
 （1）点击右上角的按钮可以新建文件/文件夹
 
-![image-20200710175006820](http://nextcloud.hellochaos.cn/index.php/s/7QBXmYPRSspPGbF/preview)
+![image-20200710175006820](imgs/20201202112942)
 
 （2）点击第一栏可以打开文件/文件夹
 
-![image-20200710175027800](http://nextcloud.hellochaos.cn/index.php/s/eCpNJeFg4LgRPZb/preview)
+![image-20200710175027800](imgs/20201202113107)
 
 （3）点击第二栏按钮可以编辑文件内容或者重命名文件夹
 
-![image-20200710175051415](http://nextcloud.hellochaos.cn/index.php/s/wTSro4FtHqj3qDc/preview)
+![image-20200710175051415](imgs/20201202113116)
 
 （4）点击第三栏按钮可以删除文件/文件夹
 
-![image-20200710175110260](http://nextcloud.hellochaos.cn/index.php/s/RRxM2ySwrzAp7ZS/preview)
+![image-20200710175110260](imgs/20201202113147)
 
 （5）点击“返回按钮”可以返回上次打开的文件夹，打开“..”文件夹可以返回上级文件夹
 
-![image-20200710175123318](http://nextcloud.hellochaos.cn/index.php/s/MCyd4PdAb4443o5/preview)
+![image-20200710175123318](imgs/20201202113200)
 
 **退出登录**
 
 （1）点击左上角按钮可以退出登录
 
-![img](http://nextcloud.hellochaos.cn/index.php/s/koSHom6MpMMZ4rs/preview)
+![img](imgs/20201202113241)
 
 
 ### Install
@@ -59,7 +57,7 @@
 
 [@Yuchao Huang- Origin Author](https://github.com/misterchaos/)
 
-Email: kobe524348@gmail.com
+Email: misterchaos@163.com
 
 ### About
 
